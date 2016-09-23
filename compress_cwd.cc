@@ -46,13 +46,6 @@ int main(int argc, char **argv) {
     max_size = static_cast<size_t>(std::strtoul(argv[1], nullptr, 10));
   }
   std::string pwd(getenv("PWD"));
-  std::ofstream of("/home/evan/log", std::ofstream::out);
-  if (!of.good()) {
-    return 1;
-  }
-  of << pwd;
-  of.close();
-
   if (pwd.empty()) {
     return 1;
   }
