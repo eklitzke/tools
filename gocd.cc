@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <cstring>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -10,7 +11,7 @@
 #include <dirent.h>
 #include <sys/types.h>
 
-const std::vector<std::string> ignore_dirs{".git", ".", ".."};
+const std::string gitdir(".git");
 
 int main(int argc, char **argv) {
   if (argc <= 1) {
@@ -24,8 +25,7 @@ int main(int argc, char **argv) {
   std::vector<std::string> candidates{gopath + "/src"};
   while (!candidates.empty()) {
     // the current directory we're checking
-    const std::string cur = candidates.back();
-    candidates.pop_back();
+    const std::string &cur = candidates.back();
 
     DIR *dir = opendir(cur.c_str());
     if (dir == nullptr) {
@@ -33,6 +33,11 @@ int main(int argc, char **argv) {
       return 1;
     }
 
+    // Collect subdirectories into subdirs... but stop if we encounter a .git
+    // directory at any point. If no .git directory is found then we'll merge
+    // subdirs into candidates and resort;
+    bool hadgit = false;
+    std::vector<std::string> subdirs;
     for (;;) {
       dirent *de = readdir(dir);
       if (de == nullptr) {
@@ -41,35 +46,40 @@ int main(int argc, char **argv) {
       if (de->d_type != DT_DIR) {
         continue;
       }
-      const std::string name(de->d_name);
-      bool ignore = false;
-      for (const auto &ignore_dir : ignore_dirs) {
-        if (ignore_dir == name) {
-          ignore = true;
-          break;
-        }
+      if (strcmp(de->d_name, ".") == 0 || strcmp(de->d_name, "..") == 0) {
+        continue;
       }
-      if (ignore) {
+      if (strcmp(de->d_name, ".git") == 0) {
+        hadgit = true;
         continue;
       }
 
-      std::ostringstream os;
-      os << cur << '/' << name;
-      if (name == target) {
-        std::cout << os.str() << "\n";
+      if (strcmp(de->d_name, target.c_str()) == 0) {
+        std::cout << de->d_name << "/" << target << "\n";
         closedir(dir);
         return 0;
       }
-      candidates.push_back(os.str());
+
+      if (!hadgit) {
+        std::ostringstream os;
+        os << cur << '/' << de->d_name;
+        subdirs.push_back(os.str());
+      }
     }
     closedir(dir);
+    candidates.pop_back();
 
-    // sort so that the directory with the shortest name is at the back
-    std::sort(candidates.begin(),
-              candidates.end(),
-              [](const std::string &a, const std::string &b) {
-                return a.size() > b.size();
-              });
+    if (!hadgit) {
+      candidates.insert(candidates.end(), subdirs.begin(), subdirs.end());
+
+      // sort so that the directory with the shortest name is at the back
+      std::sort(candidates.begin(),
+                candidates.end(),
+                [](const std::string &a, const std::string &b) {
+                  return a.size() > b.size();
+                });
+    }
   }
+
   return 0;
 }
