@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
       }
 
       if (strcmp(de->d_name, target.c_str()) == 0) {
-        std::cout << de->d_name << "/" << target << "\n";
+        std::cout << cur << "/" << target << "\n";
         closedir(dir);
         return 0;
       }
