@@ -10,7 +10,7 @@ alternative to `\w` in my prompt.
 This efficiently searches `$GOPATH` to find a Go project. Recommended usage is
 something like this:
 
-```lang=bash
+```bash
 gocd() {
     if [ -z "${GOPATH}" ]; then
         return 1;
