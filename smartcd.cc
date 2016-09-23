@@ -1,4 +1,4 @@
-// Efficiently find a Go project.
+// Efficiently find a project.
 
 #include <algorithm>
 #include <cstdlib>
@@ -12,15 +12,15 @@
 #include <sys/types.h>
 
 int main(int argc, char **argv) {
-  if (argc <= 1) {
+  if (argc <= 2) {
     return 0;
   }
-  const std::string gopath = getenv("GOPATH");
-  if (gopath.empty()) {
+  const std::string root(argv[1]);
+  if (root.empty()) {
     return 1;
   }
-  const std::string target(argv[1]);
-  std::vector<std::string> candidates{gopath + "/src"};
+  const std::string target(argv[2]);
+  std::vector<std::string> candidates{root};
   while (!candidates.empty()) {
     // the current directory we're checking
     const std::string &cur = candidates.back();

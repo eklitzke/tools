@@ -1,5 +1,5 @@
 CXXFLAGS := -O2 -flto -Wall -std=c++11
-TARGETS := compress_cwd gocd loaded_keys
+TARGETS := _compress_cwd _loaded_keys _smartcd
 
 all: $(TARGETS)
 
@@ -7,7 +7,7 @@ install: all
 	mkdir -p ~/local/bin
 	cp $(TARGETS) ~/local/bin
 
-%: %.cc
+_%: %.cc
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 clean:

@@ -5,9 +5,24 @@ These are various tools that I install into my `$PATH` that I find useful.
 This compressed the value of `$PWD` so that it's not too long. I use this as an
 alternative to `\w` in my prompt.
 
-## `gocd`
+## `smartcd`
 
-This efficiently searches `$GOPATH` to find a Go project.
+This efficiently searches `$GOPATH` to find a Go project. Recommended usage is
+something like this:
+
+```lang=bash
+gocd() {
+    if [ -z "${GOPATH}" ]; then
+        return 1;
+    fi
+    local best=$(_smartcd "${GOPATH}/src" "$1")
+    if [ -n "$best" ]; then
+        cd "$best"
+    else
+        return 1
+    fi
+}
+```
 
 ## `loaded_keys`
 
