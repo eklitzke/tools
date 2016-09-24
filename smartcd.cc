@@ -32,8 +32,12 @@ public:
 typedef std::priority_queue<std::string, std::vector<std::string>, Compare> pq;
 
 std::string TrimPath(std::string path) {
-  while (!path.empty() && path.back() == '/') {
-    path = path.substr(0, path.size() - 1);
+  size_t trim = 0;
+  for (auto it = path.rbegin(); it != path.rend() && *it == '/'; ++it) {
+    trim++;
+  }
+  if (trim) {
+    path.erase(path.size() - trim, std::string::npos);
   }
   return path;
 }
