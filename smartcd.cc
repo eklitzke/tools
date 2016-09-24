@@ -11,30 +11,48 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <algorithm>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <queue>
+#include <sstream>
 #include <string>
 #include <vector>
-#include <sstream>
 
 #include <dirent.h>
 #include <sys/types.h>
+
+class Compare {
+public:
+  bool operator()(const std::string &a, const std::string &b) {
+    return a.size() > b.size();
+  }
+};
+
+typedef std::priority_queue<std::string, std::vector<std::string>, Compare> pq;
+
+std::string TrimPath(std::string path) {
+  while (!path.empty() && path.back() == '/') {
+    path = path.substr(0, path.size() - 1);
+  }
+  return path;
+}
 
 int main(int argc, char **argv) {
   if (argc <= 2) {
     return 0;
   }
-  const std::string root(argv[1]);
+  const std::string root = TrimPath(argv[1]);
   if (root.empty()) {
     return 1;
   }
   const std::string target(argv[2]);
-  std::vector<std::string> candidates{root};
+
+  pq candidates;
+  candidates.push(root);
   while (!candidates.empty()) {
     // the current directory we're checking
-    const std::string &cur = candidates.back();
+    const std::string &cur = candidates.top();
 
     DIR *dir = opendir(cur.c_str());
     if (dir == nullptr) {
@@ -60,6 +78,7 @@ int main(int argc, char **argv) {
       }
       if (strcmp(de->d_name, ".git") == 0) {
         hadgit = true;
+        subdirs.clear();
         continue;
       }
 
@@ -76,17 +95,9 @@ int main(int argc, char **argv) {
       }
     }
     closedir(dir);
-    candidates.pop_back();
-
-    if (!hadgit) {
-      candidates.insert(candidates.end(), subdirs.begin(), subdirs.end());
-
-      // sort so that the directory with the shortest name is at the back
-      std::sort(candidates.begin(),
-                candidates.end(),
-                [](const std::string &a, const std::string &b) {
-                  return a.size() > b.size();
-                });
+    candidates.pop();
+    for (const auto &s : subdirs) {
+      candidates.push(s);
     }
   }
 
