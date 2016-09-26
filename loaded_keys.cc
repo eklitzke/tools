@@ -16,7 +16,9 @@
 
 #include <iostream>
 #include <string>
-#include <set>
+
+#define HAVE_USSH 1
+#define HAVE_ED25519 2
 
 static bool ends_with(std::string const &value, std::string const &ending) {
   if (ending.size() > value.size()) {
@@ -53,25 +55,25 @@ int main(int argc, char **argv) {
     close(pipefd[1]);
 
     // parse the input
+    int state = 0;
     std::string s;
-    std::set<char> chars;
     while (std::cin.good()) {
       std::getline(std::cin, s);
       if (s.find(" [Valid until ") != std::string::npos) {
-        chars.insert('u');
-      } else if (ends_with(s, " (RSA-CERT)")) {
-        chars.insert('r');
+        state |= HAVE_USSH;
       } else if (ends_with(s, " (ED25519)")) {
-        chars.insert('e');
+        state |= HAVE_ED25519;
       }
     }
 
-    // print keys to cout
-    if (!chars.empty()) {
-      std::cout.put(' ');
-      for (const auto &c : chars) {
-        std::cout.put(c);
-      }
+    switch (state) {
+    case HAVE_USSH:
+      std::cout << " -";
+      break;
+    case HAVE_ED25519:
+      std::cout << " |";
+    case (HAVE_USSH | HAVE_ED25519):
+      std::cout << " +";
     }
     return 0;
   }
