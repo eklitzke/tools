@@ -20,7 +20,9 @@
 #include <vector>
 
 #include <dirent.h>
+#include <sys/stat.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 class Compare {
 public:
@@ -46,14 +48,15 @@ int main(int argc, char **argv) {
   if (argc <= 2) {
     return 0;
   }
-  const std::string root = TrimPath(argv[1]);
-  if (root.empty()) {
-    return 1;
-  }
-  const std::string target(argv[2]);
-
+  const std::string target(argv[argc - 1]);
   pq candidates;
-  candidates.push(root);
+  for (int i = 1; i < argc - 1; i++) {
+    struct stat buf;
+    const std::string path = TrimPath(argv[i]);
+    if (stat(path.c_str(), &buf) == 0) {
+      candidates.push(path);
+    }
+  }
   while (!candidates.empty()) {
     // the current directory we're checking
     const std::string &cur = candidates.top();
