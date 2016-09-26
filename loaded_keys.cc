@@ -68,12 +68,14 @@ int main(int argc, char **argv) {
 
     switch (state) {
     case HAVE_USSH:
-      std::cout << " -";
+      std::cout << " /";
       break;
     case HAVE_ED25519:
-      std::cout << " |";
+      std::cout << " \\";
+      break;
     case (HAVE_USSH | HAVE_ED25519):
       std::cout << " +";
+      break;
     }
     return 0;
   }
